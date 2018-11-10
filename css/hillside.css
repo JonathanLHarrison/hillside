@@ -1,0 +1,27 @@
+/****************************************************************
+Styles for Hillside
+Jonathan Harrison
+2018
+******************************************************************/
+
+body {
+	background-color: #fff;
+}
+#animationContainer {
+	position: absolute;
+	background-color: #fff;
+	overflow: hidden;
+	visibility: hidden;
+}
+#apartmentBuilding {
+	position: absolute;
+	width: 100%;
+	height: auto;
+  	shape-rendering: geometricPrecision;
+}
+#textElement {
+	position: absolute;
+	-webkit-backface-visibility:hidden;
+	backface-visibility: hidden;
+	will-change: transform;
+}
