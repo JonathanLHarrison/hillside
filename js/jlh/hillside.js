@@ -1,11 +1,39 @@
-/****************************************************************
+/****************************************
 Scripts for Hillside
 Jonathan Harrison
 2018
-******************************************************************/
+****************************************/
+
+/****************************************
+Hello, CodePen! 
+Thanks for checking out this demo, where I'm using GSAP to animate paths in an SVG.
+****************************************/
+
+
+/****************************************
+CONTROLS: easy access for a few things
+****************************************/
+// control variables
+var startingXPosition, startingYPosition, startingZoom, mainTimelineTimescale, starTimelineTimescale, textEase;
+
+startingXPosition = 23.8; // edges: 0.0 to 100.0; <0 or >100 values will work; default: 23.8
+startingYPosition = 34; // edges: 0.0 to 100.0; <0 or >100 values will work; default: 34
+startingZoom = 6;  // from starting value to 1; default: 6
+mainTimelineTimescale = 1; // speed up/slow down animation
+starTimelineTimescale = 1; // speed up/slow down just the stars
+
+// control how the text enters the screen
+// for an interactive list of GSAP eases, see: https://greensock.com/ease-visualizer
+textEase = "Power1.easeOut"; // "Power4.easeOut" "Bounce.easeOut" "Back.easeOut"
+
+/****************************************
+End Conrtols
+****************************************/
+
 
 // ready
 $(document).ready(function() {
+	// dimensions
 	var width = $( window ).width();
 	var height = $( window ).height();
 	var animationContainer = $("#animationContainer");
@@ -27,14 +55,22 @@ $(document).ready(function() {
 	var apartmentBuilding = $("#apartmentBuilding");
 	centerElement(apartmentBuilding );
 
-	// beginning position: zoomed in on window
-	var startingXPercent = 56;
-	var startingYPercent = -34;
-	var startingScale = 6;
-	TweenLite.set(apartmentBuilding, { scale: startingScale, xPercent: startingXPercent, yPercent: startingYPercent, force3D: false });
+	// map starting position to X/YPercent values
+	startingXPosition = Math.abs(startingXPosition - 100);
+	startingXPosition = (startingXPosition * 4) - 250;
+	startingYPosition = Math.abs(startingYPosition - 100);
+	startingYPosition = (startingYPosition * 4) - 300;
+
+	// set frame to starting position
+	TweenLite.set(apartmentBuilding, { scale: startingZoom, xPercent: startingXPosition, yPercent: startingYPosition, force3D: false });
 
 	/*
-		setup main timeline
+		setup main timeline:
+			the numbers are the positions in the main timeline that each "label" will start at. "sunset" happens 1.2 seconds into the main timeline.
+
+			this makes keeping track of subtle timing between many different timelines clean and simple. add the label here, then add the animation to the label later. 
+
+			also, each animation isn't dependant on the positions of the others. change the sunset to later in the main timeline, and the stars will still come out at 4.5 seconds. that means you can tweak the timing of one effect without having to go and change where everything else happens.
 	*/
 	var tl = new TimelineMax();
 	tl.add("pull away", 0.3);
@@ -46,7 +82,8 @@ $(document).ready(function() {
 	tl.add("monitor", 5.99);
 
 	/*
-		populate main timeline
+		populate main timeline:
+			use the returned timeline method to add child timelines with each individual effect at the time set for each "label" in the last codeblock
 	*/
 
 	// START: show the animation container
@@ -72,7 +109,7 @@ $(document).ready(function() {
 	// stars
 	var stars = $(".star");
 	tl.add(showStars(stars), "stars");
-	tl.add(twinkleStars(stars), "stars+=0.5");
+	tl.add(twinkleStars(stars, starTimelineTimescale), "stars+=0.5");
 
 	// turn monitor on
 	var monitor = $("#roomBackground");
@@ -80,13 +117,17 @@ $(document).ready(function() {
 
 	// text element
 	var textElement = $("#textElement");
-	tl.add(showText(textElement), "text");
+	tl.add(showText(textElement, textEase), "text");
+
+	// set main timeline timescale
+	tl.timeScale(mainTimelineTimescale);
 
 });
 // end ready
 
 /*
-	animation functions
+	animation functions:
+		return timelines to the parent timeline
 */
 function pullAway(scene) {
 	var tl = new TimelineMax({ id: "pull away" });
@@ -144,7 +185,7 @@ function showStars(stars) {
 	return tl;
 }
 
-function twinkleStars(stars) {
+function twinkleStars(stars, timeScale) {
     var tl = new TimelineMax();
     for (var i = 0; i < stars.length; i++) {
         var delay = randomInt(1, 3);
@@ -157,21 +198,21 @@ function twinkleStars(stars) {
         tempTL.to(stars[i], 0.6, { scale: 1, opacity: 1, transformOrigin: "50% 50%", ease: Back.easeIn });
         tl.add(tempTL, timelinePosition);
     }
+
+    tl.timeScale(timeScale);
     return tl;
 }
 
 function turnOnMonitor(monitor) {
 	var tl = new TimelineMax({ id: "turn on monitor" });
-
 	tl.to(monitor, 0.01, { fill: "#eef" });
 
 	return tl;
 }
 
-function showText(textElement) {
+function showText(textElement, ease) {
 	var tl = new TimelineMax({ id: "show text" });
-	var duration = 0.8;
-	tl.from(textElement, duration, { yPercent: "-125%" });
+	tl.from(textElement, 0.8, { yPercent: "-125%", ease: ease });
 
 	return tl;
 }
@@ -186,7 +227,7 @@ function centerElement(element, xAxisOnly) {
 		TweenLite.set(element, { left:'50%', xPercent:'-50' });
 	}
 	else {
-		TweenLite.set(element, { left:'50%',top:'50%', xPercent:'-50',yPercent:'-50'});
+		TweenLite.set(element, { left:'50%',top:'50%', xPercent:'-50',yPercent:'-50' });
 	}
 }
 // return a random float between 2 given floats
